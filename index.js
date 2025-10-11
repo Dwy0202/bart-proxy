@@ -18,7 +18,7 @@ const config = {
     id: "M30-2", // Powell St Platform 2
     direction: "eastbound".toLowerCase(),
   },
-  port: 3000
+  port: 3001
 };
 
 // Load static GTFS data

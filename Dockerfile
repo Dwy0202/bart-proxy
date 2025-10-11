@@ -15,7 +15,7 @@ COPY index.js ./
 COPY gtfs-static-data ./gtfs-static-data
 
 # Expose the application port
-EXPOSE 3000
+EXPOSE 3001
 
 # Set environment variables
 ENV NODE_ENV=production
