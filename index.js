@@ -15,7 +15,7 @@ const config = {
     alerts: "https://api.bart.gov/gtfsrt/alerts.aspx",
   },
   station: {
-    id: "M20-1", // Montgomery St. Station Platform 1 (Eastbound)
+    id: "M20-2", // Montgomery St. Station Platform 2 (Eastbound)
     direction: "eastbound".toLowerCase(),
   },
   port: 3001,
