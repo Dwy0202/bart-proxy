@@ -412,8 +412,8 @@ app.get('/next-display', (req, res) => {
           height: 100vh;
         }
         .display {
-          width: 440px; /* 20 chars * 22px approx */
-          height: 120px; /* 4 lines * 30px approx */
+          width: 440px; /* 20 chars * approx */
+          height: 120px; /* 4 lines */
           border: 3px solid #FF0000;
           padding: 10px;
           box-sizing: border-box;
@@ -427,50 +427,35 @@ app.get('/next-display', (req, res) => {
     </head>
     <body>
       <div class="display">
-        <div class="line" id="line1">Loading...         </div>
-        <div class="line" id="line2">Loading...         </div>
+        <div class="line" id="line1">                    </div>
+        <div class="line" id="line2">                    </div>
         <div class="line" id="line3">                    </div>
         <div class="line" id="line4">                    </div>
       </div>
 
       <script>
+        function formatLine(destination, minutes, vehicle) {
+          // Destination max 10 chars, left-aligned
+          let dest = destination.toUpperCase().slice(0,10).padEnd(10,' ');
+          // 4 spaces
+          const spacer = '    ';
+          // Minutes right-aligned to 6 characters
+          let mins = (minutes + ' MIN').padStart(6,' ');
+          return dest + spacer + mins;
+        }
+
         async function updateDisplay() {
           try {
             const res = await fetch('/next');
             const data = await res.json();
-            const lines = [];
 
-            // Line 1 & 2: First 2 arrivals (destination + minutes)
-            for (let i = 0; i < 2; i++) {
-              const train = data.nextArrivals[i];
-              if (train) {
-                // Destination padded to 14 chars, minutes padded to 6 chars
-                let dest = train.destination.toUpperCase().slice(0,14);
-                dest = dest.padEnd(14, ' ');
-                let mins = train.minutesUntilArrival.toString().padStart(2,' ') + ' MIN';
-                mins = mins.padStart(6,' ');
-                lines.push(dest + mins);
-              } else {
-                lines.push(' '.repeat(20));
-              }
-            }
+            const train1 = data.nextArrivals[0] || {};
+            const train2 = data.nextArrivals[1] || {};
 
-            // Line 3: Train type (vehicle)
-            const firstTrain = data.nextArrivals[0];
-            if (firstTrain && firstTrain.vehicle) {
-              let vehicle = firstTrain.vehicle.toUpperCase().slice(0,20);
-              lines.push(vehicle.padEnd(20,' '));
-            } else {
-              lines.push(' '.repeat(20));
-            }
-
-            // Line 4: Empty or can show last updated time
-            lines.push(' '.repeat(20));
-
-            // Update DOM
-            for (let i = 0; i < 4; i++) {
-              document.getElementById('line'+(i+1)).textContent = lines[i];
-            }
+            document.getElementById('line1').textContent = train1.destination ? formatLine(train1.destination, train1.minutesUntilArrival) : ' '.repeat(20);
+            document.getElementById('line2').textContent = train1.vehicle ? train1.vehicle.toUpperCase().slice(0,20).padEnd(20,' ') : ' '.repeat(20);
+            document.getElementById('line3').textContent = train2.destination ? formatLine(train2.destination, train2.minutesUntilArrival) : ' '.repeat(20);
+            document.getElementById('line4').textContent = train2.vehicle ? train2.vehicle.toUpperCase().slice(0,20).padEnd(20,' ') : ' '.repeat(20);
 
           } catch (err) {
             console.error('Failed to fetch /next:', err);
@@ -484,6 +469,7 @@ app.get('/next-display', (req, res) => {
     </html>
   `);
 });
+
 
 // List all stops
 app.get('/stops', (req, res) => {
