@@ -438,6 +438,10 @@ app.get('/next-display', (req, res) => {
       </div>
 
       <script>
+        function truncate(str, maxLength) {
+          return str ? str.slice(0, maxLength).toUpperCase() : '';
+        }
+
         async function updateDisplay() {
           try {
             const res = await fetch('/next');
@@ -446,11 +450,11 @@ app.get('/next-display', (req, res) => {
             const train1 = data.nextArrivals[0] || {};
             const train2 = data.nextArrivals[1] || {};
 
-            // Line 1: Destination left, arrival right
-            document.getElementById('line1').textContent = '';
+            // Line 1: Destination (9 chars) left, arrival right
+            document.getElementById('line1').innerHTML = '';
             if (train1.destination) {
               document.getElementById('line1').innerHTML = 
-                '<span>' + train1.destination.toUpperCase() + '</span>' +
+                '<span>' + truncate(train1.destination,9) + '</span>' +
                 '<span>' + train1.minutesUntilArrival + ' MIN</span>';
             }
 
@@ -458,10 +462,10 @@ app.get('/next-display', (req, res) => {
             document.getElementById('line2').textContent = train1.vehicle ? train1.vehicle.toUpperCase() : '';
 
             // Line 3: Second train
-            document.getElementById('line3').textContent = '';
+            document.getElementById('line3').innerHTML = '';
             if (train2.destination) {
               document.getElementById('line3').innerHTML = 
-                '<span>' + train2.destination.toUpperCase() + '</span>' +
+                '<span>' + truncate(train2.destination,9) + '</span>' +
                 '<span>' + train2.minutesUntilArrival + ' MIN</span>';
             }
 
@@ -480,6 +484,7 @@ app.get('/next-display', (req, res) => {
     </html>
   `);
 });
+
 
 
 
