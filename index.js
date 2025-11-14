@@ -1,17 +1,23 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
+import fetch from 'node-fetch'; // make sure Node 18+ or install node-fetch if needed
 
 const app = express();
 const PORT = 3001;
 
-// -------- Mock API (replace this with your real API later) --------
-app.get('/trains', (req, res) => {
+// -------- Live BART API endpoint --------
+// Replace this URL with your actual BART API or internal logic
+const BART_API_URL = 'https://api.bart-proxy.local/upcomingTrips'; // example placeholder
+
+app.get('/trains', async (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'sample-data.json'), 'utf-8'));
+    // Fetch live data from your existing API logic
+    const response = await fetch(BART_API_URL);
+    if (!response.ok) throw new Error('Failed to fetch BART data');
+    const data = await response.json();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to read train data' });
+    console.error('Error fetching BART data:', err);
+    res.status(500).json({ error: 'Failed to fetch train data' });
   }
 });
 
@@ -33,10 +39,7 @@ app.get('/', (req, res) => {
           align-items: center;
           padding-top: 50px;
         }
-        .station-name {
-          font-size: 3em;
-          margin-bottom: 30px;
-        }
+        .station-name { font-size: 3em; margin-bottom: 30px; }
         .train {
           margin: 10px;
           padding: 10px 20px;
@@ -47,12 +50,8 @@ app.get('/', (req, res) => {
           align-items: center;
           font-size: 1.5em;
         }
-        .route {
-          font-weight: bold;
-        }
-        .minutes {
-          font-size: 1.8em;
-        }
+        .route { font-weight: bold; }
+        .minutes { font-size: 1.8em; }
       </style>
     </head>
     <body>
@@ -64,12 +63,9 @@ app.get('/', (req, res) => {
           try {
             const res = await fetch('/trains');
             const data = await res.json();
-
             document.getElementById('station-name').textContent = data.stop.name;
-
             const container = document.getElementById('trains-container');
             container.innerHTML = '';
-
             data.upcomingTrips.forEach(trip => {
               const trainEl = document.createElement('div');
               trainEl.className = 'train';
@@ -85,7 +81,6 @@ app.get('/', (req, res) => {
             console.error('Failed to fetch train data:', err);
           }
         }
-
         fetchTrains();
         setInterval(fetchTrains, 30000); // refresh every 30s
       </script>
@@ -95,5 +90,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`BART display running at http://localhost:${PORT}`);
+  console.log(\`BART display running at http://localhost:\${PORT}\`);
 });
