@@ -412,8 +412,8 @@ app.get('/next-display', (req, res) => {
           height: 100vh;
         }
         .display {
-          width: 440px; /* 20 chars * approx */
-          height: 120px; /* 4 lines */
+          width: 440px;
+          height: 120px;
           border: 3px solid #FF0000;
           padding: 10px;
           box-sizing: border-box;
@@ -434,14 +434,14 @@ app.get('/next-display', (req, res) => {
       </div>
 
       <script>
-        function formatLine(destination, minutes, vehicle) {
-          // Destination max 10 chars, left-aligned
-          let dest = destination.toUpperCase().slice(0,10).padEnd(10,' ');
-          // 4 spaces
-          const spacer = '    ';
-          // Minutes right-aligned to 6 characters
-          let mins = (minutes + ' MIN').padStart(6,' ');
-          return dest + spacer + mins;
+        function formatLine(destination, minutes) {
+          // Destination max 9 characters, left-aligned
+          let dest = destination.toUpperCase().slice(0,9).padEnd(9,' ');
+          // Minutes with "MIN"
+          let mins = (minutes + ' MIN');
+          // Right-align minutes to far right of 20 chars
+          let line = dest + ' '.repeat(20 - dest.length - mins.length) + mins;
+          return line;
         }
 
         async function updateDisplay() {
@@ -463,12 +463,13 @@ app.get('/next-display', (req, res) => {
         }
 
         updateDisplay();
-        setInterval(updateDisplay, 30000); // refresh every 30s
+        setInterval(updateDisplay, 30000);
       </script>
     </body>
     </html>
   `);
 });
+
 
 
 // List all stops
