@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BART Station Display</title>
+  <style>
+    body {
+      background-color: black;
+      color: red;
+      font-family: "Arial Black", sans-serif;
+      font-size: 2em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 50px;
+    }
+    .station-name {
+      font-size: 3em;
+      margin-bottom: 30px;
+    }
+    .train {
+      margin: 10px;
+      padding: 10px 20px;
+      border: 2px solid red;
+      width: 600px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.5em;
+    }
+    .route {
+      font-weight: bold;
+    }
+    .minutes {
+      font-size: 1.8em;
+    }
+  </style>
+</head>
+<body>
+  <div class="station-name" id="station-name">Loading Station...</div>
+  <div id="trains-container"></div>
+
+  <script>
+    async function fetchTrains() {
+      const res = await fetch('/trains');
+      const data = await res.json();
+
+      document.getElementById('station-name').textContent = data.stop.name;
+
+      const container = document.getElementById('trains-container');
+      container.innerHTML = ''; // Clear previous
+
+      data.upcomingTrips.forEach(trip => {
+        const trainEl = document.createElement('div');
+        trainEl.className = 'train';
+        trainEl.style.borderColor = trip.routeColor;
+        trainEl.innerHTML = `
+          <div class="route" style="color:${trip.routeColor}">${trip.routeName}</div>
+          <div class="headsign">${trip.headsign}</div>
+          <div class="minutes">${trip.minutesUntilArrival} min</div>
+        `;
+        container.appendChild(trainEl);
+      });
+    }
+
+    // Initial fetch
+    fetchTrains();
+
+    // Update every 30 seconds
+    setInterval(fetchTrains, 30000);
+  </script>
+</body>
+</html>
