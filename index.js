@@ -427,10 +427,18 @@ app.get('/next-display', (req, res) => {
           justify-content: space-between;
           white-space: nowrap;
         }
+        .centered {
+          justify-content: center !important;
+          align-items: center;
+          text-align: center;
+        }
+        .hidden {
+          visibility: hidden;
+        }
       </style>
     </head>
     <body>
-      <div class="display">
+      <div class="display" id="display">
         <div class="line" id="line1"></div>
         <div class="line" id="line2"></div>
         <div class="line" id="line3"></div>
@@ -438,6 +446,8 @@ app.get('/next-display', (req, res) => {
       </div>
 
       <script>
+        let flashInterval = null;
+
         function truncate(str, maxLength) {
           return str ? str.slice(0, maxLength).toUpperCase() : '';
         }
@@ -450,27 +460,63 @@ app.get('/next-display', (req, res) => {
             const train1 = data.nextArrivals[0] || {};
             const train2 = data.nextArrivals[1] || {};
 
-            // Line 1: Destination (9 chars) left, arrival right
-            document.getElementById('line1').innerHTML = '';
-            if (train1.destination) {
-              document.getElementById('line1').innerHTML = 
-                '<span>' + truncate(train1.destination,9) + '</span>' +
-                '<span>' + train1.minutesUntilArrival + ' MIN</span>';
+            const displayDiv = document.getElementById('display');
+            const line2 = document.getElementById('line2');
+            const line3 = document.getElementById('line3');
+
+            if (train1.minutesUntilArrival <= 1) {
+              // ARRIVING MODE
+              displayDiv.style.flexDirection = 'column';
+              displayDiv.querySelectorAll('.line').forEach(line => line.classList.add('centered'));
+
+              document.getElementById('line1').textContent = '';
+              line2.textContent = truncate(train1.destination, 9);
+              line3.textContent = train1.vehicle ? train1.vehicle.toUpperCase() : '';
+              document.getElementById('line4').textContent = '';
+
+              // Start flashing
+              if (!flashInterval) {
+                flashInterval = setInterval(() => {
+                  line2.classList.toggle('hidden');
+                  line3.classList.toggle('hidden');
+                }, 1000); // 1s on/off → flashes once per 2s
+              }
+
+            } else {
+              // REGULAR MODE
+              displayDiv.style.flexDirection = 'column';
+              displayDiv.querySelectorAll('.line').forEach(line => line.classList.remove('centered'));
+
+              // Stop flashing if active
+              if (flashInterval) {
+                clearInterval(flashInterval);
+                flashInterval = null;
+                line2.classList.remove('hidden');
+                line3.classList.remove('hidden');
+              }
+
+              // Line 1
+              document.getElementById('line1').innerHTML = '';
+              if (train1.destination) {
+                document.getElementById('line1').innerHTML = 
+                  '<span>' + truncate(train1.destination,9) + '</span>' +
+                  '<span>' + train1.minutesUntilArrival + ' MIN</span>';
+              }
+
+              // Line 2
+              document.getElementById('line2').textContent = train1.vehicle ? train1.vehicle.toUpperCase() : '';
+
+              // Line 3
+              document.getElementById('line3').innerHTML = '';
+              if (train2.destination) {
+                document.getElementById('line3').innerHTML = 
+                  '<span>' + truncate(train2.destination,9) + '</span>' +
+                  '<span>' + train2.minutesUntilArrival + ' MIN</span>';
+              }
+
+              // Line 4
+              document.getElementById('line4').textContent = train2.vehicle ? train2.vehicle.toUpperCase() : '';
             }
-
-            // Line 2: Train type
-            document.getElementById('line2').textContent = train1.vehicle ? train1.vehicle.toUpperCase() : '';
-
-            // Line 3: Second train
-            document.getElementById('line3').innerHTML = '';
-            if (train2.destination) {
-              document.getElementById('line3').innerHTML = 
-                '<span>' + truncate(train2.destination,9) + '</span>' +
-                '<span>' + train2.minutesUntilArrival + ' MIN</span>';
-            }
-
-            // Line 4: Train type
-            document.getElementById('line4').textContent = train2.vehicle ? train2.vehicle.toUpperCase() : '';
 
           } catch (err) {
             console.error('Failed to fetch /next:', err);
@@ -484,6 +530,7 @@ app.get('/next-display', (req, res) => {
     </html>
   `);
 });
+
 
 
 
