@@ -405,7 +405,7 @@ app.get('/next-display', (req, res) => {
           color: #FF0000;
           font-family: "Courier New", monospace;
           font-size: 24px;
-          letter-spacing: 2px;
+          letter-spacing: 1px;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -417,33 +417,27 @@ app.get('/next-display', (req, res) => {
           border: 3px solid #FF0000;
           padding: 10px;
           box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
         }
         .line {
-          height: 1.2em;
-          white-space: pre;
           font-weight: bold;
+          display: flex;
+          justify-content: space-between;
+          white-space: nowrap;
         }
       </style>
     </head>
     <body>
       <div class="display">
-        <div class="line" id="line1">                    </div>
-        <div class="line" id="line2">                    </div>
-        <div class="line" id="line3">                    </div>
-        <div class="line" id="line4">                    </div>
+        <div class="line" id="line1"></div>
+        <div class="line" id="line2"></div>
+        <div class="line" id="line3"></div>
+        <div class="line" id="line4"></div>
       </div>
 
       <script>
-        function formatLine(destination, minutes) {
-          // Destination max 9 characters, left-aligned
-          let dest = destination.toUpperCase().slice(0,9).padEnd(9,' ');
-          // Minutes with "MIN"
-          let mins = (minutes + ' MIN');
-          // Right-align minutes to far right of 20 chars
-          let line = dest + ' '.repeat(20 - dest.length - mins.length) + mins;
-          return line;
-        }
-
         async function updateDisplay() {
           try {
             const res = await fetch('/next');
@@ -452,23 +446,17 @@ app.get('/next-display', (req, res) => {
             const train1 = data.nextArrivals[0] || {};
             const train2 = data.nextArrivals[1] || {};
 
-            document.getElementById('line1').textContent = train1.destination ? formatLine(train1.destination, train1.minutesUntilArrival) : ' '.repeat(20);
-            document.getElementById('line2').textContent = train1.vehicle ? train1.vehicle.toUpperCase().slice(0,20).padEnd(20,' ') : ' '.repeat(20);
-            document.getElementById('line3').textContent = train2.destination ? formatLine(train2.destination, train2.minutesUntilArrival) : ' '.repeat(20);
-            document.getElementById('line4').textContent = train2.vehicle ? train2.vehicle.toUpperCase().slice(0,20).padEnd(20,' ') : ' '.repeat(20);
+            // Line 1: Destination left, arrival right
+            document.getElementById('line1').textContent = '';
+            if (train1.destination) {
+              document.getElementById('line1').innerHTML = 
+                '<span>' + train1.destination.toUpperCase() + '</span>' +
+                '<span>' + train1.minutesUntilArrival + ' MIN</span>';
+            }
 
-          } catch (err) {
-            console.error('Failed to fetch /next:', err);
-          }
-        }
+            // Line 2: Train type
+            document.getElementById('
 
-        updateDisplay();
-        setInterval(updateDisplay, 30000);
-      </script>
-    </body>
-    </html>
-  `);
-});
 
 
 
