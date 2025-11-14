@@ -415,11 +415,14 @@ app.get('/next-display', (req, res) => {
           width: 440px;
           height: 120px;
           border: 3px solid #FF0000;
-          padding: 10px;
+          padding-top: 10px;
+          padding-bottom: 10px;
+          padding-left: 10px;
+          padding-right: 10px;
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
-          justify-content: space-around;
+          justify-content: space-between;
         }
         .line {
           font-weight: bold;
