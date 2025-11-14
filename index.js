@@ -395,81 +395,90 @@ app.get('/next', async (req, res) => {
 app.get('/next-display', (req, res) => {
   res.send(`
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <title>BART Next Trains</title>
+      <title>BART 20x4 Display</title>
       <style>
         body {
           background-color: black;
-          color: red;
-          font-family: "Arial Black", sans-serif;
+          color: #FF0000;
+          font-family: "Courier New", monospace;
+          font-size: 24px;
+          letter-spacing: 2px;
           display: flex;
-          flex-direction: column;
+          justify-content: center;
           align-items: center;
-          padding: 50px;
+          height: 100vh;
         }
-        h1 { font-size: 3em; margin-bottom: 20px; }
-        table {
-          border-collapse: collapse;
-          width: 600px;
-          text-align: left;
+        .display {
+          width: 440px; /* 20 chars * 22px approx */
+          height: 120px; /* 4 lines * 30px approx */
+          border: 3px solid #FF0000;
+          padding: 10px;
+          box-sizing: border-box;
         }
-        th, td {
-          border: 2px solid red;
-          padding: 12px 15px;
-          font-size: 1.8em;
+        .line {
+          height: 1.2em;
+          white-space: pre;
+          font-weight: bold;
         }
-        th { font-size: 2em; }
-        tr:nth-child(even) td { background-color: #330000; }
-        .minutes { text-align: right; }
       </style>
     </head>
     <body>
-      <h1 id="station-name">Loading Station...</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Destination</th>
-            <th>Minutes</th>
-            <th>Vehicle</th>
-          </tr>
-        </thead>
-        <tbody id="trains-container"></tbody>
-      </table>
+      <div class="display">
+        <div class="line" id="line1">Loading...         </div>
+        <div class="line" id="line2">Loading...         </div>
+        <div class="line" id="line3">                    </div>
+        <div class="line" id="line4">                    </div>
+      </div>
 
       <script>
-        async function fetchNextTrains() {
+        async function updateDisplay() {
           try {
             const res = await fetch('/next');
             const data = await res.json();
+            const lines = [];
 
-            document.getElementById('station-name').textContent = data.station;
+            // Line 1 & 2: First 2 arrivals (destination + minutes)
+            for (let i = 0; i < 2; i++) {
+              const train = data.nextArrivals[i];
+              if (train) {
+                // Destination padded to 14 chars, minutes padded to 6 chars
+                let dest = train.destination.toUpperCase().slice(0,14);
+                dest = dest.padEnd(14, ' ');
+                let mins = train.minutesUntilArrival.toString().padStart(2,' ') + ' MIN';
+                mins = mins.padStart(6,' ');
+                lines.push(dest + mins);
+              } else {
+                lines.push(' '.repeat(20));
+              }
+            }
 
-            const container = document.getElementById('trains-container');
-            container.innerHTML = '';
+            // Line 3: Train type (vehicle)
+            const firstTrain = data.nextArrivals[0];
+            if (firstTrain && firstTrain.vehicle) {
+              let vehicle = firstTrain.vehicle.toUpperCase().slice(0,20);
+              lines.push(vehicle.padEnd(20,' '));
+            } else {
+              lines.push(' '.repeat(20));
+            }
 
-            data.nextArrivals.forEach(train => {
-              const tr = document.createElement('tr');
+            // Line 4: Empty or can show last updated time
+            lines.push(' '.repeat(20));
 
-              // Highlight trains arriving immediately
-              const highlight = train.minutesUntilArrival <= 1 ? 'style="color: yellow; font-weight: bold;"' : '';
+            // Update DOM
+            for (let i = 0; i < 4; i++) {
+              document.getElementById('line'+(i+1)).textContent = lines[i];
+            }
 
-              tr.innerHTML = \`
-                <td \${highlight}>\${train.destination}</td>
-                <td class="minutes" \${highlight}>\${train.minutesUntilArrival}</td>
-                <td \${highlight}>\${train.vehicle || ''}</td>
-              \`;
-
-              container.appendChild(tr);
-            });
           } catch (err) {
-            console.error('Failed to fetch train data:', err);
+            console.error('Failed to fetch /next:', err);
           }
         }
 
-        fetchNextTrains();
-        setInterval(fetchNextTrains, 30000); // refresh every 30 seconds
+        updateDisplay();
+        setInterval(updateDisplay, 30000); // refresh every 30s
       </script>
     </body>
     </html>
