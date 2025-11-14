@@ -455,8 +455,31 @@ app.get('/next-display', (req, res) => {
             }
 
             // Line 2: Train type
-            document.getElementById('
+            document.getElementById('line2').textContent = train1.vehicle ? train1.vehicle.toUpperCase() : '';
 
+            // Line 3: Second train
+            document.getElementById('line3').textContent = '';
+            if (train2.destination) {
+              document.getElementById('line3').innerHTML = 
+                '<span>' + train2.destination.toUpperCase() + '</span>' +
+                '<span>' + train2.minutesUntilArrival + ' MIN</span>';
+            }
+
+            // Line 4: Train type
+            document.getElementById('line4').textContent = train2.vehicle ? train2.vehicle.toUpperCase() : '';
+
+          } catch (err) {
+            console.error('Failed to fetch /next:', err);
+          }
+        }
+
+        updateDisplay();
+        setInterval(updateDisplay, 30000); // refresh every 30s
+      </script>
+    </body>
+    </html>
+  `);
+});
 
 
 
